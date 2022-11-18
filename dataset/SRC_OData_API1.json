@@ -1,0 +1,26 @@
+{
+	"name": "SRC_OData_API1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "APEXOData",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"indicatorname": {
+				"type": "string"
+			},
+			"BaseURL": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "ODataResource",
+		"schema": [],
+		"typeProperties": {
+			"path": {
+				"value": "@dataset().indicatorname",
+				"type": "Expression"
+			}
+		}
+	}
+}

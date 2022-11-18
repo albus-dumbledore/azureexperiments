@@ -1,0 +1,199 @@
+{
+	"name": "WebToBronze_OdataAPI_NoAuth1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup - get list of table names",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "SRC_Odata_metadata_csv1",
+						"type": "DatasetReference",
+						"parameters": {
+							"Metadata_Filename": {
+								"value": "@pipeline().parameters.Metadata_Filename",
+								"type": "Expression"
+							},
+							"ProjectTeamName": {
+								"value": "@pipeline().globalParameters.ProjectTeamName",
+								"type": "Expression"
+							},
+							"Metadata_folderpath": {
+								"value": "@pipeline().parameters.Metadata_folderpath",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach table - execute the loop",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup - get list of table names",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup - get list of table names').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set Indicator Name",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "arrayvalue",
+								"value": {
+									"value": "@item().indicatorname",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Ingest to Bronze_copy",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set Indicator Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ODataSource",
+									"httpRequestTimeout": "00:05:00"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_OData_API1",
+									"type": "DatasetReference",
+									"parameters": {
+										"indicatorname": {
+											"value": "@variables('arrayvalue')",
+											"type": "Expression"
+										},
+										"BaseURL": {
+											"value": "@pipeline().parameters.Source_ODataAPI_URL",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SINK_OdataAPI_CSV1",
+									"type": "DatasetReference",
+									"parameters": {
+										"sinkindicatorname": {
+											"value": "@variables('arrayvalue')",
+											"type": "Expression"
+										},
+										"ProjectTeamName": {
+											"value": "@pipeline().globalParameters.ProjectTeamName",
+											"type": "Expression"
+										},
+										"DataAsset": {
+											"value": "@pipeline().parameters.DataAsset",
+											"type": "Expression"
+										},
+										"FileExtension": {
+											"value": "@pipeline().parameters.FilenameExtension",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"Source_ODataAPI_URL": {
+				"type": "string",
+				"defaultValue": "https://ghoapi.azureedge.net/api"
+			},
+			"DataAsset": {
+				"type": "string",
+				"defaultValue": "GHO_OData_API"
+			},
+			"Metadata_Filename": {
+				"type": "string",
+				"defaultValue": "odata_arrayforloop.csv"
+			},
+			"FilenameExtension": {
+				"type": "string",
+				"defaultValue": ".csv"
+			},
+			"Metadata_folderpath": {
+				"type": "string",
+				"defaultValue": "Odata_Metadata_Folder"
+			}
+		},
+		"variables": {
+			"BronzeFileName": {
+				"type": "String"
+			},
+			"arrayvalue": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "_TEMPLATE ARTIFACTS/WebToBronze"
+		},
+		"annotations": []
+	}
+}

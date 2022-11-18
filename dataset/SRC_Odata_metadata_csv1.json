@@ -1,0 +1,41 @@
+{
+	"name": "SRC_Odata_metadata_csv1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "APEXPDataLakeStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Metadata_Filename": {
+				"type": "string"
+			},
+			"ProjectTeamName": {
+				"type": "string"
+			},
+			"Metadata_folderpath": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().Metadata_Filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@{dataset().ProjectTeamName}/Bronze/@{dataset().Metadata_folderpath}",
+					"type": "Expression"
+				},
+				"fileSystem": "whdh"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
